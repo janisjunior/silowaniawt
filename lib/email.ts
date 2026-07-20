@@ -1,9 +1,14 @@
+import nodemailer from "nodemailer";
 import { Booking } from "./types";
 
 // -----------------------------------------------------------------------
-// Wysyłka e-maili przez Resend (https://resend.com) — REST API, bez
-// dodatkowej zależności npm. Wymaga zmiennej środowiskowej RESEND_API_KEY
-// oraz zweryfikowanej domeny nadawcy w panelu Resend.
+// Wysyłka e-maili przez zwykłe SMTP istniejącej skrzynki reminder@wheeltrade.pl
+// (hosting LH.pl). Wymaga zmiennych środowiskowych:
+//   SMTP_HOST     — np. c513.lh.pl (numer serwera z panelu klienta LH.pl)
+//   SMTP_PORT     — 465 (SSL) lub 587 (STARTTLS)
+//   SMTP_SECURE   — "true" dla portu 465, "false" dla 587
+//   SMTP_USER     — pełen adres skrzynki, np. reminder@wheeltrade.pl
+//   SMTP_PASSWORD — hasło do tej skrzynki
 // -----------------------------------------------------------------------
 
 const FROM_ADDRESS = "WT GYM <reminder@wheeltrade.pl>";
@@ -19,28 +24,41 @@ function formatDateLong(iso: string): string {
   return `${WEEKDAY_LABELS[d.getDay()]}, ${d.getDate()} ${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+let cachedTransporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+
+function getTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || "465");
+  const secure = (process.env.SMTP_SECURE ?? "true") === "true";
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+    });
+  }
+  return cachedTransporter;
+}
+
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("RESEND_API_KEY nie jest ustawiony — pomijam wysyłkę e-maila.");
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn("Brak konfiguracji SMTP (SMTP_HOST/SMTP_USER/SMTP_PASSWORD) — pomijam wysyłkę e-maila.");
     return;
   }
 
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: FROM_ADDRESS, to, subject, html }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Resend: błąd wysyłki e-maila", res.status, text);
-    }
+    await transporter.sendMail({ from: FROM_ADDRESS, to, subject, html });
   } catch (err) {
-    console.error("Resend: wyjątek podczas wysyłki e-maila", err);
+    console.error("SMTP: błąd wysyłki e-maila", err);
   }
 }
 
