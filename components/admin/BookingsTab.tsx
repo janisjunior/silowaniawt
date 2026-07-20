@@ -37,7 +37,7 @@ export default function BookingsTab() {
   const [manualForm, setManualForm] = useState(emptyManualForm());
   const [manualError, setManualError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ fullName: "", phone: "", email: "", message: "" });
+  const [editForm, setEditForm] = useState({ fullName: "", email: "", message: "" });
 
   async function load() {
     setLoading(true);
@@ -78,7 +78,7 @@ export default function BookingsTab() {
 
   function startEdit(b: Booking) {
     setEditingId(b.id);
-    setEditForm({ fullName: b.fullName, phone: b.phone, email: b.email, message: b.message || "" });
+    setEditForm({ fullName: b.fullName, email: b.email, message: b.message || "" });
   }
 
   async function saveEdit(id: string) {
@@ -184,8 +184,8 @@ export default function BookingsTab() {
           <thead>
             <tr className="text-left text-xs text-[var(--text-secondary)] border-b" style={{ borderColor: "var(--border)" }}>
               <th className="py-2.5 px-3 font-medium">Data / godzina</th>
-              <th className="py-2.5 px-3 font-medium">Klient</th>
-              <th className="py-2.5 px-3 font-medium">Kontakt</th>
+              <th className="py-2.5 px-3 font-medium">Uczestnicy</th>
+              <th className="py-2.5 px-3 font-medium">E-mail</th>
               <th className="py-2.5 px-3 font-medium">Status</th>
               <th className="py-2.5 px-3 font-medium">Akcje</th>
             </tr>
@@ -241,26 +241,14 @@ export default function BookingsTab() {
                   </td>
                   <td className="py-2.5 px-3 align-top">
                     {editing ? (
-                      <div className="space-y-1">
-                        <input
-                          value={editForm.phone}
-                          onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
-                          className="rounded border px-2 py-1 text-sm w-full"
-                          style={{ borderColor: "var(--border)" }}
-                        />
-                        <input
-                          value={editForm.email}
-                          onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                          className="rounded border px-2 py-1 text-sm w-full"
-                          style={{ borderColor: "var(--border)" }}
-                        />
-                      </div>
+                      <input
+                        value={editForm.email}
+                        onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                        className="rounded border px-2 py-1 text-sm w-full"
+                        style={{ borderColor: "var(--border)" }}
+                      />
                     ) : (
-                      <>
-                        {b.phone}
-                        <br />
-                        <span className="text-[var(--text-secondary)]">{b.email}</span>
-                      </>
+                      b.email
                     )}
                   </td>
                   <td className="py-2.5 px-3 align-top">

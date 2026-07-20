@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createBooking, createManualBooking, listBookings } from "@/lib/store";
+import { createBooking, createManualBooking, listBookings, getSettings } from "@/lib/store";
 import { isAuthenticated } from "@/lib/auth";
 import { validateBookingForm } from "@/lib/validation";
 import { BookingStatus, Duration } from "@/lib/types";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 
 // GET /api/bookings — lista rezerwacji (panel admina), z filtrami
 export async function GET(req: NextRequest) {
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
 // rezerwacji ręcznej przez admina (gdy przesłano isManual: true)
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { date, startTime, duration, fullName, phone, email, message, acceptRules, isManual } = body;
+  const { date, startTime, duration, participants, fullName, phone, email, message, isManual } = body;
 
   if (isManual) {
     const authed = await isAuthenticated();
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
       startTime,
       duration: duration as Duration,
       fullName,
-      phone,
+      phone: phone || "",
       email,
       message,
     });
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ booking: result.ok ? result.booking : null }, { status: 201 });
   }
 
-  const errors = validateBookingForm({ fullName, phone, email, message, acceptRules });
+  const errors = validateBookingForm({ participants, email, message });
   if (Object.values(errors).some(Boolean)) {
     return NextResponse.json({ error: "Formularz zawiera błędy.", fieldErrors: errors }, { status: 400 });
   }
@@ -59,8 +60,8 @@ export async function POST(req: NextRequest) {
     date,
     startTime,
     duration: Number(duration) as Duration,
-    fullName,
-    phone,
+    fullName: participants,
+    phone: "",
     email,
     message,
   });
@@ -68,6 +69,12 @@ export async function POST(req: NextRequest) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 409 });
   }
+
+  const settings = await getSettings();
+  const siteOrigin = req.nextUrl.origin;
+  sendBookingConfirmationEmail(result.booking, settings.facilityName, siteOrigin).catch((err) =>
+    console.error("Nie udało się wysłać e-maila z potwierdzeniem:", err)
+  );
 
   return NextResponse.json({ booking: result.booking }, { status: 201 });
 }

@@ -47,13 +47,7 @@ export default function BookingWidget({ settings }: { settings: Settings }) {
 
   const canProceed = useMemo(() => !!selectedTime, [selectedTime]);
 
-  async function handleFormSubmit(values: {
-    fullName: string;
-    phone: string;
-    email: string;
-    message: string;
-    acceptRules: boolean;
-  }) {
+  async function handleFormSubmit(values: { participants: string; email: string; message: string }) {
     setSubmitting(true);
     setServerError(null);
     try {
