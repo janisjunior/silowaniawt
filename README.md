@@ -14,19 +14,16 @@ Aplikacja: http://localhost:3000
 Panel admina: http://localhost:3000/admin (domyślne hasło: `silownia123`,
 można je zmienić zmienną środowiskową `ADMIN_PASSWORD`)
 
-## Ważne — przechowywanie danych w tej wersji
+## Przechowywanie danych
 
-To jest wersja demonstracyjna/startowa: wszystkie rezerwacje i ustawienia
-grafiku żyją **w pamięci procesu Node.js** (`lib/store.ts`) i znikają po
-restarcie serwera. To najprostsze możliwe rozwiązanie, żeby aplikacja była
-od razu w pełni działająca (prawdziwe tworzenie/anulowanie/edycja rezerwacji,
-walidacja, blokowanie slotów).
+Aplikacja korzysta z prawdziwej bazy **Postgres** (np. darmowy Neon) przez
+lekki driver `pg` — bez Prisma czy innego ORM-a wymagającego pobierania
+binarnych silników. Schemat tabel (`lib/db.ts`) tworzy się sam przy
+pierwszym zapytaniu — nie trzeba ręcznie uruchamiać migracji.
 
-Żeby przejść na produkcję, wystarczy podmienić funkcje w `lib/store.ts`
-(np. `createBooking`, `listBookings`, `getSlotsForDate`) na zapytania do
-prawdziwej bazy danych (np. Postgres + Prisma) — sygnatury funkcji i typy
-w `lib/types.ts` są tak zaprojektowane, żeby reszta aplikacji (komponenty,
-API routes) nie wymagała zmian.
+Do lokalnego developmentu potrzebujesz zmiennej `DATABASE_URL` wskazującej
+na dowolną bazę Postgres (lokalną albo np. darmowy projekt na Neon) —
+patrz `.env.example`.
 
 Podobnie e-mail z potwierdzeniem/linkiem anulowania nie jest w tej wersji
 faktycznie wysyłany (brak skonfigurowanego dostawcy poczty) — link do
@@ -74,3 +71,78 @@ W tym środowisku sandbox brak dostępu do Google Fonts podczas builda, więc
 interfejs korzysta z systemowego stosu czcionek sans-serif. W środowisku
 z dostępem do sieci można przywrócić `next/font/google` (np. Inter) w
 `app/layout.tsx` bez żadnych innych zmian.
+
+## Wdrożenie za darmo: GitHub + Neon + Vercel
+
+Ten zestaw jest w 100% darmowy (bez karty kredytowej) i — w odróżnieniu od
+wersji z danymi w pamięci — rezerwacje faktycznie się zapisują na stałe,
+bo aplikacja korzysta z prawdziwej bazy Postgres.
+
+### 1. Wrzuć kod na GitHub
+
+Projekt ma już zainicjalizowane repozytorium git z pierwszym commitem.
+Wystarczy podpiąć własny, pusty projekt z GitHuba:
+
+```bash
+cd gym-booking
+git remote add origin https://github.com/TWOJA-NAZWA/gym-booking.git
+git branch -M main
+git push -u origin main
+```
+
+(Jeśli nie masz jeszcze pustego repozytorium — załóż je na github.com →
+„New repository", bez zaznaczania „Add a README", żeby nie kolidowało
+z plikami z tego projektu.)
+
+### 2. Załóż darmową bazę na Neon
+
+1. Wejdź na [neon.tech](https://neon.tech) i załóż konto (możesz zalogować się przez GitHub).
+2. Utwórz nowy projekt (region wybierz najbliższy Polsce, np. Frankfurt/AWS eu-central-1).
+3. W panelu projektu znajdź **Connection string** — będą dwie wersje:
+   - **Pooled connection** (zawiera `-pooler` w adresie) → to będzie `DATABASE_URL`,
+   - **Direct connection** (bez `-pooler`) → to będzie `DIRECT_URL`.
+4. Skopiuj obie wartości — przydadzą się w kroku 3.
+
+Nic więcej nie trzeba robić ręcznie — aplikacja sama utworzy potrzebne
+tabele przy pierwszym uruchomieniu (patrz `lib/db.ts`).
+
+### 3. Wdróż na Vercel
+
+1. Wejdź na [vercel.com](https://vercel.com), zaloguj się przez GitHub.
+2. „Add New…" → „Project" → wybierz repozytorium `gym-booking`.
+3. Framework Preset wykryje się automatycznie jako Next.js — nic nie zmieniaj.
+4. W sekcji **Environment Variables** dodaj:
+
+   | Nazwa | Wartość |
+   |---|---|
+   | `DATABASE_URL` | pooled connection string z Neon |
+   | `DIRECT_URL` | direct connection string z Neon |
+   | `ADMIN_PASSWORD` | własne, silne hasło do panelu admina |
+
+5. Kliknij **Deploy**. Po ok. minucie dostaniesz publiczny adres w stylu
+   `https://gym-booking-xxxx.vercel.app`.
+
+### 4. Pierwsze uruchomienie
+
+- Otwórz `https://twoja-domena.vercel.app` — pierwsze żądanie samo utworzy
+  tabele w bazie Neon i wstawi domyślne ustawienia grafiku.
+- Wejdź na `/admin`, zaloguj się hasłem z `ADMIN_PASSWORD` i dostosuj
+  godziny otwarcia, limity miejsc i teksty w zakładce „Grafik".
+- Jeśli chcesz mieć dane demonstracyjne do testów, wywołaj raz funkcję
+  `seedDemoBookingsIfEmpty()` z `lib/store.ts` (np. tymczasowo z poziomu
+  jednego z API routes) — w wersji produkcyjnej możesz to pominąć.
+
+### Późniejsze zmiany w kodzie
+
+Każdy `git push` na branch `main` automatycznie uruchamia nowe wdrożenie
+na Vercel — nic więcej nie trzeba klikać.
+
+### Ograniczenia darmowych planów, o których warto wiedzieć
+
+- **Vercel Hobby** jest formalnie przeznaczony do użytku niekomercyjnego
+  (100 GB transferu i 1 mln wywołań funkcji miesięcznie — dla małej
+  siłowni to bardzo dużo zapasu).
+- **Neon Free** daje 0,5 GB miejsca i ok. 100 godzin obliczeniowych
+  miesięcznie na projekt, baza „usypia" po okresie bezczynności i budzi
+  się przy pierwszym zapytaniu (opóźnienie ok. pół sekundy) — dla ruchu
+  typowego dla siłowni to niezauważalne.
