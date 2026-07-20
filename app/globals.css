@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b1220; /* granatowo-czarny — kolor przewodni */
+  --ink-soft: #1c2942;
+  --paper: #fafaf9;
+  --surface: #ffffff;
+  --border: #e4e2dc;
+  --border-strong: #cfccc3;
+  --text-primary: #14161a;
+  --text-secondary: #5c5f66;
+  --text-muted: #8b8e94;
+
+  --status-available-bg: #eef4ee;
+  --status-available-border: #b9cdb9;
+  --status-available-text: #2f5a35;
+
+  --status-low-bg: #fbf1e2;
+  --status-low-border: #e3c690;
+  --status-low-text: #8a5a10;
+
+  --status-full-bg: #f4f2ee;
+  --status-full-border: #ddd9d0;
+  --status-full-text: #9a978f;
+
+  --status-selected-bg: var(--ink);
+  --status-selected-text: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ink);
+  color: #fff;
+}
+
+button {
+  font-family: inherit;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
