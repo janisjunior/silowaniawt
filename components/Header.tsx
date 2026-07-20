@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface HeaderProps {
   companyName: string;
@@ -16,16 +17,10 @@ export default function Header({ companyName, facilityName, rulesText }: HeaderP
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-            style={{ background: "var(--ink)", color: "#fff" }}
-            aria-hidden="true"
+            className="h-12 px-3 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "var(--ink)" }}
           >
-            {companyName
-              .split(" ")
-              .map((w) => w[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase()}
+            <Image src="/logo.png" alt={companyName} width={191} height={120} className="h-8 w-auto" priority />
           </div>
           <div>
             <p className="text-sm text-[var(--text-secondary)] leading-tight">{companyName}</p>
