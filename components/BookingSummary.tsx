@@ -31,10 +31,9 @@ interface BookingSummaryProps {
   date: string;
   time: string;
   duration: number;
-  seats?: number;
 }
 
-export default function BookingSummary({ date, time, duration, seats = 1 }: BookingSummaryProps) {
+export default function BookingSummary({ date, time, duration }: BookingSummaryProps) {
   const endTime = addMinutes(time, duration);
   const durationLabel = duration === 60 ? "1 godzina" : duration === 90 ? "1 godzina 30 minut" : "2 godziny";
 
@@ -43,7 +42,6 @@ export default function BookingSummary({ date, time, duration, seats = 1 }: Book
     ["Godzina rozpoczęcia", time],
     ["Godzina zakończenia", endTime],
     ["Czas trwania", durationLabel],
-    ["Liczba rezerwowanych miejsc", String(seats)],
   ];
 
   return (

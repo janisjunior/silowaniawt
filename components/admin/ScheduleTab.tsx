@@ -85,7 +85,43 @@ export default function ScheduleTab() {
   return (
     <div className="space-y-8 max-w-3xl">
       <section>
-        <h2 className="text-base font-semibold mb-3">Godziny otwarcia i limity miejsc</h2>
+        <h2 className="text-base font-semibold mb-3">Ogólne</h2>
+        <div className="rounded-xl border p-4 space-y-3" style={{ borderColor: "var(--border)" }}>
+          <div>
+            <label className="block text-xs text-[var(--text-secondary)] mb-1">Nazwa firmy</label>
+            <input
+              type="text"
+              value={settings.companyName}
+              onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
+              className={inputClass + " w-full"}
+              style={{ borderColor: "var(--border)" }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-[var(--text-secondary)] mb-1">Nazwa obiektu</label>
+            <input
+              type="text"
+              value={settings.facilityName}
+              onChange={(e) => setSettings({ ...settings, facilityName: e.target.value })}
+              className={inputClass + " w-full"}
+              style={{ borderColor: "var(--border)" }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-[var(--text-secondary)] mb-1">Zasady rezerwacji (tekst widoczny dla klienta)</label>
+            <textarea
+              value={settings.rulesText}
+              onChange={(e) => setSettings({ ...settings, rulesText: e.target.value })}
+              rows={3}
+              className={inputClass + " w-full"}
+              style={{ borderColor: "var(--border)", resize: "vertical" }}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold mb-3">Godziny otwarcia</h2>
         <div className="rounded-xl border divide-y" style={{ borderColor: "var(--border)" }}>
           {DOW_ORDER.map((dow) => {
             const day = settings.weekSchedule[dow as keyof WeekSchedule];
@@ -116,18 +152,6 @@ export default function ScheduleTab() {
                   className={inputClass}
                   style={{ borderColor: "var(--border)", opacity: day.enabled ? 1 : 0.5 }}
                 />
-                <div className="flex items-center gap-1.5 text-sm">
-                  <span className="text-[var(--text-secondary)]">miejsc:</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={day.capacity}
-                    disabled={!day.enabled}
-                    onChange={(e) => updateDay(dow, { capacity: Number(e.target.value) })}
-                    className={inputClass}
-                    style={{ borderColor: "var(--border)", width: 64, opacity: day.enabled ? 1 : 0.5 }}
-                  />
-                </div>
               </div>
             );
           })}

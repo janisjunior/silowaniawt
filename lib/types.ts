@@ -78,5 +78,6 @@ export interface TimeSlot {
   capacity: number;
   booked: number;
   available: number;
-  status: "available" | "low" | "full";
+  status: "available" | "full";
+  bookedByEmail?: string; // widoczne tylko gdy status === "full"
 }

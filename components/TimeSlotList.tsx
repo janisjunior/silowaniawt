@@ -18,31 +18,18 @@ function statusStyles(status: TimeSlot["status"], selected: boolean) {
       color: "var(--status-selected-text)",
     };
   }
-  if (status === "available") {
+  if (status === "full") {
     return {
-      background: "var(--surface)",
-      borderColor: "var(--border)",
-      color: "var(--text-primary)",
-    };
-  }
-  if (status === "low") {
-    return {
-      background: "var(--status-low-bg)",
-      borderColor: "var(--status-low-border)",
-      color: "var(--status-low-text)",
+      background: "var(--status-full-bg)",
+      borderColor: "var(--status-full-border)",
+      color: "var(--status-full-text)",
     };
   }
   return {
-    background: "var(--status-full-bg)",
-    borderColor: "var(--status-full-border)",
-    color: "var(--status-full-text)",
+    background: "var(--surface)",
+    borderColor: "var(--border)",
+    color: "var(--text-primary)",
   };
-}
-
-function statusLabel(status: TimeSlot["status"], available: number) {
-  if (status === "full") return "brak miejsc";
-  if (status === "low") return `zostało ${available} ${available === 1 ? "miejsce" : "miejsca"}`;
-  return `${available} miejsc`;
 }
 
 export default function TimeSlotList({ slots, selectedTime, onSelect, loading, dateBookable }: TimeSlotListProps) {
@@ -91,12 +78,11 @@ export default function TimeSlotList({ slots, selectedTime, onSelect, loading, d
               style={{
                 ...styles,
                 cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.75 : 1,
               }}
             >
               <p className="text-base font-semibold leading-tight">{slot.time}</p>
-              <p className="text-xs mt-0.5 leading-tight" style={{ opacity: selected ? 0.85 : 1 }}>
-                {statusLabel(slot.status, slot.available)}
+              <p className="text-xs mt-0.5 leading-tight break-all" style={{ opacity: selected ? 0.85 : 1 }}>
+                {slot.status === "full" ? `zajęte: ${slot.bookedByEmail ?? "—"}` : "dostępny"}
               </p>
             </button>
           );
@@ -105,8 +91,7 @@ export default function TimeSlotList({ slots, selectedTime, onSelect, loading, d
 
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-xs text-[var(--text-secondary)]">
         <LegendItem colorVar="var(--surface)" borderVar="var(--border)" label="dostępny" />
-        <LegendItem colorVar="var(--status-low-bg)" borderVar="var(--status-low-border)" label="mało miejsc" />
-        <LegendItem colorVar="var(--status-full-bg)" borderVar="var(--status-full-border)" label="brak miejsc" />
+        <LegendItem colorVar="var(--status-full-bg)" borderVar="var(--status-full-border)" label="zajęty" />
         <LegendItem colorVar="var(--ink)" borderVar="var(--ink)" label="wybrany" />
       </div>
     </div>

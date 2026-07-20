@@ -46,7 +46,7 @@ function defaultSettings(): Settings {
     minAdvanceMinutes: 60,
     maxAdvanceDays: 30,
     slotStepMinutes: 60,
-    companyName: "WT Fitness",
+    companyName: "WT GYM",
     facilityName: "Siłownia",
     rulesText:
       "Rezerwacja obowiązuje na wybraną godzinę. Prosimy o przybycie 5 minut wcześniej. Spóźnienie powyżej 15 minut oznacza utratę rezerwacji.",
@@ -206,26 +206,35 @@ export async function getSlotsForDate(dateIso: string, duration: Duration): Prom
     });
     if (collidesWithBreak) continue;
 
-    let minAvailable = hours.capacity;
+    // Każdy termin może mieć tylko JEDNĄ aktywną rezerwację — niezależnie
+    // od ustawionego "capacity" (które zostaje w ustawieniach na przyszłość,
+    // ale nie decyduje już o liczbie miejsc).
+    let takenByEmail: string | undefined;
     for (let unit = start; unit < end; unit += step) {
       const unitStart = unit;
       const unitEnd = unit + step;
-      const bookedInUnit = dayBookings.reduce((sum, b) => {
+      const overlapping = dayBookings.find((b) => {
         const bStart = timeToMinutes(b.startTime);
         const bEnd = timeToMinutes(b.endTime);
-        const overlaps = bStart < unitEnd && bEnd > unitStart;
-        return overlaps ? sum + b.seats : sum;
-      }, 0);
-      const availableInUnit = hours.capacity - bookedInUnit;
-      minAvailable = Math.min(minAvailable, availableInUnit);
+        return bStart < unitEnd && bEnd > unitStart;
+      });
+      if (overlapping) {
+        takenByEmail = overlapping.email;
+        break;
+      }
     }
 
-    const bookedTotal = hours.capacity - minAvailable;
-    const available = Math.max(0, minAvailable);
-    const status: TimeSlot["status"] =
-      available === 0 ? "full" : available <= Math.max(1, Math.ceil(hours.capacity * 0.25)) ? "low" : "available";
+    const available = takenByEmail ? 0 : 1;
+    const status: TimeSlot["status"] = available === 0 ? "full" : "available";
 
-    slots.push({ time: startTime, capacity: hours.capacity, booked: bookedTotal, available, status });
+    slots.push({
+      time: startTime,
+      capacity: hours.capacity,
+      booked: takenByEmail ? 1 : 0,
+      available,
+      status,
+      bookedByEmail: takenByEmail,
+    });
   }
 
   return slots;
