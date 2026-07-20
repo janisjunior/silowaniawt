@@ -14,21 +14,25 @@ export default function Header({ companyName, facilityName, rulesText }: HeaderP
 
   return (
     <header className="w-full border-b" style={{ borderColor: "var(--border)" }}>
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-12 px-3 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: "var(--ink)" }}
-          >
-            <Image src="/logo.png" alt={companyName} width={191} height={120} className="h-8 w-auto" priority />
-          </div>
-          <div>
-            <p className="text-sm text-[var(--text-secondary)] leading-tight">{companyName}</p>
-            <h1 className="text-xl sm:text-2xl font-semibold leading-tight">{facilityName}</h1>
-          </div>
-        </div>
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14 flex flex-col items-center text-center">
+        <Image
+          src="/logo.png"
+          alt={companyName}
+          width={191}
+          height={120}
+          className="h-16 sm:h-20 w-auto"
+          priority
+        />
 
-        <div className="mt-4">
+        <p
+          className="mt-4 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {companyName}
+        </p>
+        <h1 className="mt-1 text-2xl sm:text-3xl font-semibold tracking-tight">{facilityName}</h1>
+
+        <div className="mt-5">
           <button
             type="button"
             onClick={() => setRulesOpen((v) => !v)}
@@ -37,7 +41,7 @@ export default function Header({ companyName, facilityName, rulesText }: HeaderP
             {rulesOpen ? "Ukryj zasady rezerwacji" : "Zasady rezerwacji"}
           </button>
           {rulesOpen && (
-            <p className="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+            <p className="mt-3 text-sm text-[var(--text-secondary)] leading-relaxed max-w-md mx-auto">
               {rulesText}
             </p>
           )}
